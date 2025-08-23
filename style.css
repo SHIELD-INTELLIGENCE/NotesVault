@@ -1,0 +1,217 @@
+/* ────────── CONFIRM DELETE MODAL ────────── */
+#confirm-delete-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(30, 30, 30, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+#confirm-delete-modal .modal-content {
+  background: var(--shield-grey);
+  color: var(--shield-white);
+  border-radius: var(--shield-radius);
+  box-shadow: 0 0 20px var(--shield-glow);
+  padding: 32px 36px;
+  text-align: center;
+  min-width: 300px;
+  max-width: 90vw;
+}
+
+#confirm-delete-modal button {
+  margin: 0 12px;
+  padding: 8px 20px;
+  border-radius: var(--shield-radius);
+  border: none;
+  background: var(--shield-accent);
+  color: var(--shield-black);
+  font-weight: bold;
+  font-family: 'JetBrains Mono', monospace;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background 0.2s;
+}
+
+#confirm-delete-modal button:hover {
+  background: #e6c76a;
+}
+/* ──────────── ROOT SHIELD THEME ──────────── */
+:root {
+  --shield-black: #1a1a1a;
+  --shield-white: #fafafa;
+  --shield-grey: #2a2a2a;
+  --shield-accent: #caa94c;
+  --shield-glow: rgba(202, 169, 76, 0.35);
+  --shield-font-sans: 'Roboto', Arial, sans-serif;
+  --shield-radius: 8px;
+}
+
+/* ──────────── RESET ──────────── */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  text-decoration: none;
+}
+
+/* ──────────── BODY ──────────── */
+body {
+  background: radial-gradient(circle at top, var(--shield-grey), var(--shield-black));
+  color: var(--shield-white);
+  font-family: var(--shield-font-sans);
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  text-align: center;
+  overflow-x: hidden;
+}
+
+/* ──────────── CONTAINER ──────────── */
+#app {
+  max-width: 800px;
+  margin: 0 auto;
+  padding-bottom: 5rem;
+}
+/* ────────── SAVE STATUS ────────── */
+#save-status {
+  min-height: 28px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.1em;
+  letter-spacing: 0.5px;
+}
+
+/* ──────────── HEADINGS ──────────── */
+h1 {
+  font-size: 2.2rem;
+  color: var(--shield-accent);
+  letter-spacing: 1.5px;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 8px var(--shield-glow);
+}
+h2 {
+  font-size: 1.5rem;
+  color: var(--shield-accent);
+  margin-bottom: 1rem;
+  text-shadow: 0 0 6px var(--shield-glow);
+}
+
+/* ──────────── ACCENT BAR ──────────── */
+.bar {
+  background: var(--shield-accent);
+  height: 5px;
+  width: 80%;
+  margin: 0 auto 24px auto;
+  box-shadow: 0 0 12px var(--shield-glow);
+  border-radius: 999px;
+}
+
+/* ──────────── TOP BAR ──────────── */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+/* ──────────── BUTTONS ──────────── */
+button {
+  background-color: var(--shield-grey);
+  color: var(--shield-white);
+  border: 1px solid var(--shield-accent);
+  padding: 10px 18px;
+  border-radius: var(--shield-radius);
+  font-size: 1em;
+  cursor: pointer;
+  box-shadow: 0 0 6px var(--shield-glow);
+  transition: all 0.2s ease-in-out;
+}
+
+button:hover {
+  background-color: var(--shield-black);
+  transform: scale(1.05);
+}
+
+/* ──────────── NOTES ──────────── */
+.note {
+  background: var(--shield-grey);
+  border: 1px solid var(--shield-accent);
+  border-radius: var(--shield-radius);
+  padding: 1rem 1.2rem 1rem 1.2rem;
+  margin-bottom: 1.2rem;
+  color: var(--shield-white);
+  box-shadow: 0 0 10px var(--shield-glow);
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeInUp 0.4s forwards;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+/* ──────────── TEXTAREA ──────────── */
+.note textarea {
+  width: 100%;
+  background-color: #101010;
+  border: 1px solid var(--shield-accent);
+  color: var(--shield-white);
+  resize: none;
+  font-family: var(--shield-font-sans);
+  font-size: 1em;
+  padding: 10px;
+  border-radius: var(--shield-radius);
+  box-shadow: 0 0 6px var(--shield-glow);
+  transition: height 0.2s ease;
+  min-height: 80px;
+  overflow: hidden;
+  outline: none;
+}
+
+/* ──────────── ANIMATION ──────────── */
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ──────────── BRAND IMAGE ──────────── */
+img {
+  max-width: 120px;
+  filter: drop-shadow(0 0 8px var(--shield-accent));
+}
+
+/* Responsive layout for mobile */
+@media (max-width: 600px) {
+  #app {
+    max-width: 98vw;
+    padding: 0.5rem;
+  }
+  .top-bar {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+  #notes-list-container {
+    max-height: 60vh;
+  }
+}
+
+/* Notes list container */
+#notes-list-container {
+  max-height: 65vh;
+  overflow-y: auto;
+  margin-top: 1.5rem;
+  padding-right: 4px;
+}
+
+/* Empty state */
+#empty-state {
+  text-align: center;
+  color: var(--shield-accent);
+  font-family: 'JetBrains Mono', monospace;
+}
