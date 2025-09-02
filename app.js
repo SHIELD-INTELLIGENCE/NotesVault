@@ -78,12 +78,14 @@ function fetchNotes(uid) {
         notesList.insertBefore(noteEl, notesList.children[idx]);
         renderedNotes.set(id, noteEl);
       } else {
-        // Existing note, update content if changed
+        // Existing note, update content if changed and not editing
         const noteEl = renderedNotes.get(id);
         const textarea = noteEl.querySelector("textarea");
-        if (textarea.value !== note.content) {
-          textarea.value = note.content || "";
-          setTimeout(() => autoResize.call(textarea), 0);
+        if (!noteEl.classList.contains("editing")) {
+          if (textarea.value !== note.content) {
+            textarea.value = note.content || "";
+            setTimeout(() => autoResize.call(textarea), 0);
+          }
         }
       }
       idx++;
@@ -108,13 +110,49 @@ function renderNote(note) {
   textarea.value = note.content || "";
   textarea.placeholder = "Type your note here...";
   textarea.rows = 1;
+  textarea.readOnly = true;
+  setTimeout(() => autoResize.call(textarea), 0);
+
+  // Edit/Save/Cancel buttons
+  let originalContent = note.content || "";
+  const editBtn = document.createElement("button");
+  editBtn.textContent = "Edit";
+  const cancelBtn = document.createElement("button");
+  cancelBtn.textContent = "Cancel";
+  cancelBtn.style.display = "none";
+  cancelBtn.onclick = () => {
+    textarea.value = originalContent;
+    textarea.readOnly = true;
+    noteEl.classList.remove("editing");
+    editBtn.textContent = "Edit";
+    cancelBtn.style.display = "none";
+    setSavingStatus(false);
+    setTimeout(() => autoResize.call(textarea), 0);
+  };
+  editBtn.onclick = () => {
+    if (noteEl.classList.contains("editing")) {
+      // Save mode
+      textarea.readOnly = true;
+      noteEl.classList.remove("editing");
+      originalContent = textarea.value;
+      updateNote(note.id, textarea.value);
+      setSavingStatus(false);
+      editBtn.textContent = "Edit";
+      cancelBtn.style.display = "none";
+    } else {
+      // Edit mode
+      textarea.readOnly = false;
+      noteEl.classList.add("editing");
+      textarea.focus();
+      editBtn.textContent = "Save";
+      cancelBtn.style.display = "inline-block";
+    }
+  };
+
   textarea.addEventListener("input", autoResize);
   textarea.addEventListener("input", () => setSavingStatus(true));
-  textarea.addEventListener("input", debounce(() => {
-    updateNote(note.id, textarea.value);
-    setSavingStatus(false);
-  }, 200));
-  setTimeout(() => autoResize.call(textarea), 0);
+
+  // Only save on button click, not on every input
 
   const delBtn = document.createElement("button");
   delBtn.textContent = "Delete Note";
@@ -147,6 +185,8 @@ function hideDeleteModal() {
 }
 
   noteEl.appendChild(textarea);
+  noteEl.appendChild(editBtn);
+  noteEl.appendChild(cancelBtn);
   noteEl.appendChild(delBtn);
   return noteEl;
 }
