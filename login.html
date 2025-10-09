@@ -34,6 +34,17 @@
       max-width: 400px;
     }
 
+    #app #error-message {
+      display: none;
+      color: #ff4d4d;
+      background-color: #ffe6e6;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      text-align: center;
+      font-size: 0.9em;
+    }
+
     h2 {
       text-align: center;
       color: var(--shield-accent);
@@ -49,11 +60,16 @@
       background-color: #333;
       color: var(--shield-white);
       font-size: 1em;
+      box-sizing: border-box;
+      text-align: center;
     }
 
     input:focus {
       outline: 2px solid var(--shield-accent);
     }
+
+    /* center placeholder text */
+    input::placeholder { text-align: center; color: rgba(255,255,255,0.7); }
 
     button {
       width: 100%;
@@ -77,6 +93,7 @@
 </head>
 <body>
   <div id="app">
+    <div id="error-message"></div>
     <h2>Login to NotesVault</h2>
     <input type="email" id="email" placeholder="Email" />
     <input type="password" id="password" placeholder="Password" />
@@ -93,13 +110,22 @@
 
     const email = document.getElementById("email");
     const password = document.getElementById("password");
+    const errorMessage = document.getElementById("error-message");
+
+    function displayError(message) {
+      errorMessage.textContent = message;
+      errorMessage.style.display = "block";
+      setTimeout(() => {
+        errorMessage.style.display = "none";
+      }, 5000);
+    }
 
     document.getElementById("loginBtn").onclick = async () => {
       try {
         await signInWithEmailAndPassword(auth, email.value, password.value);
         window.location.href = "index.html";
       } catch (e) {
-        alert("Login failed: " + e.message);
+        displayError("Invalid email or password. Please try again.");
       }
     };
 
@@ -108,7 +134,7 @@
         await createUserWithEmailAndPassword(auth, email.value, password.value);
         window.location.href = "index.html";
       } catch (e) {
-        alert("Signup failed: " + e.message);
+        displayError("Registration failed. Please use a valid email and password.");
       }
     };
   </script>

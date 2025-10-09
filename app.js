@@ -20,83 +20,166 @@ import {
 // 🧱 DOM Elements
 const notesList = document.getElementById("notes-list");
 const logoutBtn = document.getElementById("logout-btn");
+const alertBoxEl = document.getElementById("alert-box");
+const saveStatus = document.getElementById("save-status");
+const confirmDeleteModal = document.getElementById("confirm-delete-modal");
 
-// 📦 Alert Box Setup
-const alertBox = document.getElementById("alert-box");
-
-function showMessage(message, type = "success") {
-  alertBox.textContent = message;
-  alertBox.style.display = "block";
-  alertBox.style.backgroundColor = type === "success" ? "#d4edda" : "#f8d7da";
-  alertBox.style.color = type === "success" ? "#155724" : "#721c24";
-  setTimeout(() => (alertBox.style.display = "none"), 3000);
+// 📦 Alert Box (unobtrusive)
+function showMessage(message, type = "success", timeout = 3000) {
+  if (!alertBoxEl) return;
+  // clear any pending hide timer so new messages show immediately
+  clearTimeout(alertBoxEl._hideTimeout);
+  alertBoxEl.textContent = message;
+  alertBoxEl.classList.remove('success', 'error');
+  alertBoxEl.classList.add(type === 'success' ? 'success' : 'error');
+  // trigger visible state (CSS handles transition)
+  alertBoxEl.classList.add('visible');
+  alertBoxEl._hideTimeout = setTimeout(() => {
+    alertBoxEl.classList.remove('visible');
+  }, timeout);
 }
 
-// 🔐 Auth Guard
+// 🌀 Loading Screen helpers (uses #loading-screen from CSS if present)
+let loadingScreen = document.getElementById("loading-screen");
+if (!loadingScreen) {
+  loadingScreen = document.createElement("div");
+  loadingScreen.id = "loading-screen";
+  // use CSS-controlled #loading-screen; add inner text node with class
+  loadingScreen.classList.add('loading-screen');
+  const loadingInner = document.createElement('div');
+  loadingInner.className = 'loading-inner';
+  const spinner = document.createElement('div');
+  spinner.className = 'spinner gold';
+  const loadingText = document.createElement('div');
+  loadingText.className = 'loading-text';
+  loadingText.textContent = 'Loading...';
+  loadingInner.appendChild(spinner);
+  loadingInner.appendChild(loadingText);
+  loadingScreen.appendChild(loadingInner);
+  document.body.appendChild(loadingScreen);
+}
+
+// 🛑 Logout screen (created dynamically similar to loading screen)
+let logoutScreen = document.getElementById('logout-screen');
+if (!logoutScreen) {
+  logoutScreen = document.createElement('div');
+  logoutScreen.id = 'logout-screen';
+  logoutScreen.classList.add('hidden');
+  const loText = document.createElement('div');
+  loText.className = 'logout-text';
+  const loSpinner = document.createElement('div');
+  loSpinner.className = 'spinner red';
+  const loTextNode = document.createElement('div');
+  loTextNode.textContent = 'Logging out...';
+  loText.appendChild(loSpinner);
+  loText.appendChild(loTextNode);
+  logoutScreen.appendChild(loText);
+  document.body.appendChild(logoutScreen);
+}
+
+function showLogoutScreen() {
+  if (!logoutScreen) return;
+  logoutScreen.classList.remove('hidden');
+}
+
+function hideLogoutScreen() {
+  if (!logoutScreen) return;
+  logoutScreen.classList.add('hidden');
+}
+
+function showLoading() {
+  if (!loadingScreen) return;
+  loadingScreen.classList.remove('hidden');
+}
+
+function hideLoading() {
+  if (!loadingScreen) return;
+  loadingScreen.classList.add('hidden');
+}
+
+// 🔐 Auth Guard with Safe Loading
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    fetchNotes(user.uid);
+    showLoading();
+    fetchNotes(user.uid)
+      .then(() => hideLoading())
+      .catch((err) => {
+        console.error("Error fetching notes:", err);
+        showMessage("Failed to load notes.", "error");
+        hideLoading();
+      });
   } else {
-    window.location.href = "login.html";
+    hideLoading();
+    setTimeout(() => (window.location.href = "login.html"), 300);
   }
+
+  // Safety: hide loading even if Firebase hangs
+  setTimeout(hideLoading, 5000);
 });
 
-// 📥 Fetch Notes
-
-// Track rendered notes by ID
+// 🧩 Rendered notes tracker
 const renderedNotes = new Map();
 
+// 📥 Fetch Notes
 function fetchNotes(uid) {
-  const q = query(
-    collection(db, "notes"),
-    where("uid", "==", uid),
-    orderBy("updatedAt", "desc")
-  );
+  return new Promise((resolve, reject) => {
+    try {
+      const q = query(
+        collection(db, "notes"),
+        where("uid", "==", uid),
+        orderBy("updatedAt", "desc")
+      );
 
-  onSnapshot(q, (snapshot) => {
-    const newNotes = new Map();
-    snapshot.forEach((docSnap) => {
-      newNotes.set(docSnap.id, { id: docSnap.id, ...docSnap.data() });
-    });
+      onSnapshot(
+        q,
+        (snapshot) => {
+          const newNotes = new Map();
 
-    // Remove deleted notes
-    for (const id of renderedNotes.keys()) {
-      if (!newNotes.has(id)) {
-        const el = document.getElementById(`note-${id}`);
-        if (el) notesList.removeChild(el);
-        renderedNotes.delete(id);
-      }
-    }
+          snapshot.forEach((docSnap) => {
+            newNotes.set(docSnap.id, { id: docSnap.id, ...docSnap.data() });
+          });
 
-    // Add or update notes
-    let idx = 0;
-    newNotes.forEach((note, id) => {
-      if (!renderedNotes.has(id)) {
-        // New note, render and insert at correct position
-        const noteEl = renderNote(note);
-        noteEl.id = `note-${id}`;
-        notesList.insertBefore(noteEl, notesList.children[idx]);
-        renderedNotes.set(id, noteEl);
-      } else {
-        // Existing note, update content if changed and not editing
-        const noteEl = renderedNotes.get(id);
-        const textarea = noteEl.querySelector("textarea");
-        if (!noteEl.classList.contains("editing")) {
-          if (textarea.value !== note.content) {
-            textarea.value = note.content || "";
-            setTimeout(() => autoResize.call(textarea), 0);
+          // Remove deleted
+          for (const id of renderedNotes.keys()) {
+            if (!newNotes.has(id)) {
+              const el = document.getElementById(`note-${id}`);
+              if (el) notesList.removeChild(el);
+              renderedNotes.delete(id);
+            }
           }
-        }
-      }
-      idx++;
-    });
 
-    // Empty state
-    const emptyState = document.getElementById('empty-state');
-    if (newNotes.size === 0) {
-      emptyState.style.display = 'block';
-    } else {
-      emptyState.style.display = 'none';
+          // Add/update
+          let idx = 0;
+          newNotes.forEach((note, id) => {
+            if (!renderedNotes.has(id)) {
+              const noteEl = renderNote(note);
+              noteEl.id = `note-${id}`;
+              notesList.insertBefore(noteEl, notesList.children[idx]);
+              renderedNotes.set(id, noteEl);
+            } else {
+              const noteEl = renderedNotes.get(id);
+              const textarea = noteEl.querySelector("textarea");
+              if (
+                !noteEl.classList.contains("editing") &&
+                textarea.value !== note.content
+              ) {
+                textarea.value = note.content || "";
+                setTimeout(() => autoResize.call(textarea), 0);
+              }
+            }
+            idx++;
+          });
+
+          const emptyState = document.getElementById("empty-state");
+          if (newNotes.size === 0) emptyState.style.display = "block";
+          else emptyState.style.display = "none";
+
+          resolve();
+        },
+        (error) => reject(error)
+      );
+    } catch (err) {
+      reject(err);
     }
   });
 }
@@ -113,13 +196,14 @@ function renderNote(note) {
   textarea.readOnly = true;
   setTimeout(() => autoResize.call(textarea), 0);
 
-  // Edit/Save/Cancel buttons
   let originalContent = note.content || "";
+
   const editBtn = document.createElement("button");
   editBtn.textContent = "Edit";
   const cancelBtn = document.createElement("button");
   cancelBtn.textContent = "Cancel";
   cancelBtn.style.display = "none";
+
   cancelBtn.onclick = () => {
     textarea.value = originalContent;
     textarea.readOnly = true;
@@ -129,21 +213,25 @@ function renderNote(note) {
     setSavingStatus(false);
     setTimeout(() => autoResize.call(textarea), 0);
   };
+
   editBtn.onclick = () => {
     if (noteEl.classList.contains("editing")) {
-      // Save mode
       textarea.readOnly = true;
       noteEl.classList.remove("editing");
-      originalContent = textarea.value;
-      updateNote(note.id, textarea.value);
+      // Save only if content changed
+      if (originalContent !== textarea.value) {
+        originalContent = textarea.value;
+        updateNote(note.id, textarea.value);
+      }
       setSavingStatus(false);
       editBtn.textContent = "Edit";
       cancelBtn.style.display = "none";
     } else {
-      // Edit mode
       textarea.readOnly = false;
       noteEl.classList.add("editing");
       textarea.focus();
+      // move cursor to end
+      textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
       editBtn.textContent = "Save";
       cancelBtn.style.display = "inline-block";
     }
@@ -152,25 +240,43 @@ function renderNote(note) {
   textarea.addEventListener("input", autoResize);
   textarea.addEventListener("input", () => setSavingStatus(true));
 
-  // Only save on button click, not on every input
+  // keyboard support inside textarea: Esc to cancel, Mod+S to save
+  textarea.addEventListener("keydown", (e) => {
+    const isMod = e.ctrlKey || e.metaKey;
+    if (e.key === "Escape") {
+      cancelBtn.click();
+      e.preventDefault();
+    }
+    if (isMod && e.key.toLowerCase() === "s") {
+      if (noteEl.classList.contains("editing")) {
+        editBtn.click();
+        e.preventDefault();
+      }
+    }
+  });
 
   const delBtn = document.createElement("button");
   delBtn.textContent = "Delete Note";
   delBtn.onclick = () => showDeleteModal(note.id);
-// Custom confirm delete modal
-const confirmDeleteModal = document.getElementById("confirm-delete-modal");
+
+  noteEl.append(textarea, editBtn, cancelBtn, delBtn);
+  return noteEl;
+}
+
+// 🗑️ Delete Modal
 let pendingDeleteId = null;
 function showDeleteModal(noteId) {
   pendingDeleteId = noteId;
   confirmDeleteModal.innerHTML = `
     <div class="modal-content">
-      <h3 style="color: var(--shield-accent); margin-bottom: 18px;">Delete Note?</h3>
-      <p style="margin-bottom: 24px;">Are you sure you want to delete this note? This action cannot be undone.</p>
+      <h3>Delete Note?</h3>
+      <p>Are you sure you want to delete this note? This action cannot be undone.</p>
       <button id="confirm-delete-btn">Delete</button>
       <button id="cancel-delete-btn">Cancel</button>
     </div>
   `;
-  confirmDeleteModal.style.display = "flex";
+  // remove the hidden helper class so stylesheet can show the modal
+  confirmDeleteModal.classList.remove('hidden');
   document.getElementById("confirm-delete-btn").onclick = () => {
     deleteNote(pendingDeleteId);
     hideDeleteModal();
@@ -179,30 +285,29 @@ function showDeleteModal(noteId) {
 }
 
 function hideDeleteModal() {
-  confirmDeleteModal.style.display = "none";
+  // hide via helper class (CSS uses .hidden { display: none !important })
+  confirmDeleteModal.classList.add('hidden');
   confirmDeleteModal.innerHTML = "";
   pendingDeleteId = null;
 }
 
-  noteEl.appendChild(textarea);
-  noteEl.appendChild(editBtn);
-  noteEl.appendChild(cancelBtn);
-  noteEl.appendChild(delBtn);
-  return noteEl;
-}
-// Saving status indicator
-const saveStatus = document.getElementById("save-status");
+// 💾 Save status
 let savingTimeout;
 function setSavingStatus(isSaving) {
   if (isSaving) {
-    saveStatus.innerHTML = `<span style="color: var(--shield-accent); font-weight: bold;">Saving...</span>`;
+    const s = document.createElement('span');
+    s.className = 'saving';
+    s.textContent = 'Saving...';
+    saveStatus.innerHTML = '';
+    saveStatus.appendChild(s);
   } else {
-    saveStatus.innerHTML = `<span style="color: var(--shield-accent); font-weight: bold;">Saved <span style="color: var(--shield-accent); font-size: 1.2em; vertical-align: middle;">&#10003;</span></span>`;
-    // Hide check after 1.5s
+    const s = document.createElement('span');
+    s.className = 'saved';
+    s.textContent = 'Saved ✓';
+    saveStatus.innerHTML = '';
+    saveStatus.appendChild(s);
     clearTimeout(savingTimeout);
-    savingTimeout = setTimeout(() => {
-      saveStatus.innerHTML = "";
-    }, 1500);
+    savingTimeout = setTimeout(() => (saveStatus.innerHTML = ""), 1500);
   }
 }
 
@@ -215,7 +320,6 @@ function autoResize() {
 async function createNote() {
   const user = auth.currentUser;
   if (!user) return;
-
   try {
     await addDoc(collection(db, "notes"), {
       uid: user.uid,
@@ -224,11 +328,41 @@ async function createNote() {
       updatedAt: serverTimestamp(),
     });
     showMessage("Note created!");
+    // after a short delay, focus the first editable empty note if present
+    setTimeout(() => focusFirstEmptyNote(), 400);
   } catch (err) {
     console.error("Create error:", err.message);
     showMessage("Failed to create note.", "error");
   }
 }
+
+function focusFirstEmptyNote() {
+  // Prefer the top-most note that is empty
+  const noteEls = document.querySelectorAll('.note');
+  for (const el of noteEls) {
+    const ta = el.querySelector('textarea');
+    if (!ta) continue;
+    if (ta.value.trim() === '') {
+      const editBtn = el.querySelector('button');
+      if (editBtn) editBtn.click();
+      ta.focus();
+      ta.selectionStart = ta.selectionEnd = ta.value.length;
+      return;
+    }
+  }
+}
+
+// Global keyboard shortcut: Shift+N for new note (avoids browser conflicts)
+window.addEventListener('keydown', (e) => {
+  if (!e.shiftKey) return;
+  if (e.key.toLowerCase() === 'n') {
+    // avoid overriding when typing in inputs/textareas
+    const active = document.activeElement;
+    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
+    createNote();
+    e.preventDefault();
+  }
+});
 
 // 📝 Update Note
 async function updateNote(id, content) {
@@ -254,25 +388,20 @@ async function deleteNote(id) {
   }
 }
 
-// ⏳ Debounce Utility
-function debounce(func, delay) {
-  let timeout;
-  return (...args) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), delay);
-  };
-}
-
-// 🔓 Logout
+// 🚪 Logout
 logoutBtn.addEventListener("click", async () => {
   try {
+    // show the logout screen while signOut is in progress
+    showLogoutScreen();
     await signOut(auth);
     showMessage("Logged out.");
+    // on success, auth state will redirect to login.html (handled elsewhere)
   } catch (err) {
     console.error("Logout error:", err.message);
+    hideLogoutScreen();
     showMessage("Logout failed.", "error");
   }
 });
 
-// 🔘 For HTML button
+// 🔘 HTML Hook
 window.createNote = createNote;

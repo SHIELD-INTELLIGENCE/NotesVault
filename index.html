@@ -14,29 +14,26 @@
     <div id="app">
       <h1>NotesVault</h1>
       <h2>A secure note-taking app by SHIELD</h2>
-      <div id="save-status" style="margin: 16px 0; text-align: left;"></div>
+  <div id="save-status" class="save-status" aria-live="polite"></div>
       <div class="top-bar">
-        <button onclick="createNote()" aria-label="Create new note">New Note</button>
-        <button id="logout-btn" aria-label="Logout">Logout</button>
+        <button type="button" onclick="createNote()" aria-label="Create new note">New Note</button>
+        <button type="button" id="logout-btn" aria-label="Logout">Logout</button>
+      </div>
+  <div id="alert-box" role="status" aria-live="polite" class="alert-box"></div>
+      <div id="shortcut-hint" aria-hidden="false" class="shortcut-hint">
+        Shortcuts: <strong>Shift + N</strong> — New note · <strong>Ctrl/⌘ + S</strong> — Save (when editing)
       </div>
       <div id="notes-list-container">
         <div id="notes-list"></div>
-        <div
-          id="empty-state"
-          style="
-            display: none;
-            color: var(--shield-accent);
-            margin-top: 2rem;
-            font-size: 1.2em;
-          "
-        >
-          No notes yet. Click 'New Note' to get started!
+        <div id="empty-state" class="empty-state hidden">
+          No notes yet. Click 'New Note' or press Shift + N to get started!
         </div>
       </div>
-      <div id="confirm-delete-modal" style="display:none;"></div>
+  <div id="confirm-delete-modal" class="hidden"></div>
+    </div>
     </div>
     <script type="module" src="app.js"></script>
-    <footer style="text-align: center; margin-top: 40px; color: #534c4c">
+    <footer class="site-footer">
       © 2025 SHIELD Intelligence. All rights reserved.
     </footer>
   </body>

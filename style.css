@@ -74,7 +74,6 @@ body {
 #app {
   max-width: 800px;
   margin: 0 auto;
-  padding-bottom: 5rem;
 }
 /* ────────── SAVE STATUS ────────── */
 #save-status {
@@ -82,6 +81,59 @@ body {
   font-family: 'JetBrains Mono', monospace;
   font-size: 1.1em;
   letter-spacing: 0.5px;
+}
+
+/* Utility helper to hide elements */
+.hidden { display: none !important; }
+
+/* Save status specific layout */
+.save-status { margin: 16px 0; text-align: left; }
+
+/* Alert box - small unobtrusive notifications */
+/* Alert box - small unobtrusive notifications */
+.alert-box,
+#alert-box {
+  /* Use transitions for snappy show/hide without display toggles */
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(202,169,76,0.08);
+  color: var(--shield-accent);
+  border: 1px solid rgba(202,169,76,0.18);
+  font-family: 'JetBrains Mono', monospace;
+  text-align: left;
+  max-width: 800px;
+  margin: 0 auto;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-6px);
+  max-height: 0;
+  transition: opacity 180ms ease, transform 180ms ease, max-height 220ms ease;
+  pointer-events: none; /* don't block clicks when hidden */
+}
+
+/* Visible state */
+.alert-box.visible,
+#alert-box.visible {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 200px;
+  pointer-events: auto;
+  margin-top: 8px;
+}
+
+/* Variants */
+.alert-box.success { background: rgba(202,169,76,0.08); color: var(--shield-accent); border-color: rgba(202,169,76,0.18); }
+.alert-box.error { background: rgba(255,77,77,0.06); color: #ff4d4d; border-color: rgba(255,77,77,0.18); }
+
+/* Shortcut hint */
+/* Shortcut hint */
+#shortcut-hint, .shortcut-hint {
+  max-width: 800px;
+  margin: 0.5rem auto 0 auto;
+  text-align: center;
+  margin-top: 8px;
+  font-size: 0.9em;
+  color: var(--shield-accent);
 }
 
 /* ──────────── HEADINGS ──────────── */
@@ -221,8 +273,150 @@ img {
 }
 
 /* Empty state */
-#empty-state {
+/* Empty state */
+#empty-state, .empty-state {
   text-align: center;
   color: var(--shield-accent);
   font-family: 'JetBrains Mono', monospace;
+  margin-top: 2rem;
+  font-size: 1.2em;
+}
+
+/* Footer */
+.site-footer {
+  text-align: center;
+  margin-top: 40px;
+  color: var(--shield-grey);
+}
+
+/* Modal helpers used by JS-inserted markup */
+.modal-content h3 {
+  color: var(--shield-accent);
+  margin-bottom: 18px;
+}
+.modal-content p {
+  margin-bottom: 24px;
+}
+
+/* ────────── LOADING SCREEN ────────── */
+#loading-screen {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at top, var(--shield-grey), var(--shield-black));
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+#loading-screen .loading-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#loading-screen .loading-inner .loading-text {
+  font-size: 1.5em;
+  color: var(--shield-accent);
+}
+
+/* Spinner base */
+.spinner {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 4px solid rgba(255,255,255,0.08);
+  border-top-color: rgba(255,255,255,0.25);
+  box-sizing: border-box;
+  animation: spin 900ms linear infinite;
+}
+
+/* Gold spinner for loading */
+.spinner.gold {
+  border: 4px solid rgba(202,169,76,0.12);
+  border-top-color: var(--shield-accent);
+  box-shadow: 0 0 12px rgba(202,169,76,0.12);
+}
+
+/* Red spinner for logout */
+.spinner.red {
+  border: 4px solid rgba(255,77,77,0.12);
+  border-top-color: #ff4d4d;
+  box-shadow: 0 0 12px rgba(255,77,77,0.08);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ────────── LOGOUT SCREEN (dark red themed) ────────── */
+#logout-screen {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at top, rgba(40,6,6,0.95), rgba(8,2,2,0.95));
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1100;
+}
+
+#logout-screen .logout-text {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.1em;
+  color: var(--shield-white);
+  background: linear-gradient(180deg, rgba(60,10,10,0.9), rgba(30,6,6,0.9));
+  padding: 14px 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,77,77,0.08);
+  box-shadow: 0 8px 36px rgba(0,0,0,0.6), 0 0 18px rgba(255,77,77,0.06);
+  text-shadow: 0 0 6px rgba(0,0,0,0.6);
+  letter-spacing: 0.4px;
+  transition: transform 180ms ease, box-shadow 200ms ease, opacity 160ms ease;
+}
+
+#logout-screen .logout-text:hover {
+  box-shadow: 0 12px 40px rgba(0,0,0,0.7), 0 0 28px rgba(255,77,77,0.12);
+  transform: translateY(-2px) scale(1.01);
+}
+
+
+/* Loading text (used when dynamically created in JS) */
+.loading-text {
+  font-size: 1.4em;
+  font-weight: bold;
+  color: var(--shield-accent);
+}
+
+/* Save status inline states */
+.saving, .saved {
+  color: var(--shield-accent);
+  font-weight: bold;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Ensure modal container shows as flex when not hidden */
+#confirm-delete-modal:not(.hidden) { display: flex; }
+
+/* ────────── ERROR MESSAGE ────────── */
+#error-message {
+  display: none;
+  color: #ff4d4d;
+  background-color: #ffe6e6;
+  padding: 10px;
+  border-radius: 6px;
+  margin-top: 10px; /* Changed from margin-bottom to margin-top */
+  text-align: center;
+  font-size: 0.9em;
+  width: 100%; /* Ensure it spans the form width */
+  box-sizing: border-box; /* Prevent overflow */
 }
