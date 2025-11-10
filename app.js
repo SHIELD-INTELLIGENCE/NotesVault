@@ -23,6 +23,7 @@ const logoutBtn = document.getElementById("logout-btn");
 const alertBoxEl = document.getElementById("alert-box");
 const saveStatus = document.getElementById("save-status");
 const confirmDeleteModal = document.getElementById("confirm-delete-modal");
+const confirmLogoutModal = document.getElementById("confirm-logout-modal");
 
 // 📦 Alert Box (unobtrusive)
 function showMessage(message, type = "success", timeout = 3000) {
@@ -109,7 +110,8 @@ onAuthStateChanged(auth, (user) => {
         hideLoading();
       });
   } else {
-    hideLoading();
+    // show loading while redirecting to login so user sees feedback
+    showLoading();
     setTimeout(() => (window.location.href = "login.html"), 300);
   }
 
@@ -388,19 +390,46 @@ async function deleteNote(id) {
   }
 }
 
-// 🚪 Logout
-logoutBtn.addEventListener("click", async () => {
-  try {
-    // show the logout screen while signOut is in progress
-    showLogoutScreen();
-    await signOut(auth);
-    showMessage("Logged out.");
-    // on success, auth state will redirect to login.html (handled elsewhere)
-  } catch (err) {
-    console.error("Logout error:", err.message);
-    hideLogoutScreen();
-    showMessage("Logout failed.", "error");
-  }
+// 🚪 Logout (show confirmation modal first)
+function showLogoutConfirmModal() {
+  if (!confirmLogoutModal) return;
+  confirmLogoutModal.innerHTML = `
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="logout-title">
+      <h3 id="logout-title">Sign out of NotesVault?</h3>
+      <p>Are you sure you want to sign out? You will need to sign in again to access your notes.</p>
+      <div class="modal-actions">
+        <button id="confirm-logout-yes" class="destructive">Sign out</button>
+        <button id="confirm-logout-cancel" class="secondary">Cancel</button>
+      </div>
+    </div>
+  `;
+  confirmLogoutModal.classList.remove('hidden');
+
+  document.getElementById('confirm-logout-yes').onclick = async () => {
+    hideLogoutConfirmModal();
+    try {
+      showLogoutScreen();
+      await signOut(auth);
+      showMessage('Logged out.');
+    } catch (err) {
+      console.error('Logout error:', err?.message || err);
+      hideLogoutScreen();
+      showMessage('Logout failed.', 'error');
+    }
+  };
+
+  document.getElementById('confirm-logout-cancel').onclick = hideLogoutConfirmModal;
+}
+
+function hideLogoutConfirmModal() {
+  if (!confirmLogoutModal) return;
+  confirmLogoutModal.classList.add('hidden');
+  confirmLogoutModal.innerHTML = '';
+}
+
+logoutBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+  showLogoutConfirmModal();
 });
 
 // 🔘 HTML Hook

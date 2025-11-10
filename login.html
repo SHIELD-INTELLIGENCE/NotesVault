@@ -1,142 +1,208 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login — NotesVault</title>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --shield-black: #1a1a1a;
-      --shield-grey: #2a2a2a;
-      --shield-white: #fafafa;
-      --shield-accent: #caa94c;
-      --shield-glow: rgba(202, 169, 76, 0.35);
-    }
-
-    body {
-      background-color: var(--shield-black);
-      font-family: 'JetBrains Mono', monospace;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      color: var(--shield-white);
-    }
-
-    #app {
-      background-color: var(--shield-grey);
-      padding: 30px 40px;
-      border-radius: 12px;
-      box-shadow: 0 0 20px var(--shield-glow);
-      width: 100%;
-      max-width: 400px;
-    }
-
-    #app #error-message {
-      display: none;
-      color: #ff4d4d;
-      background-color: #ffe6e6;
-      padding: 10px;
-      border-radius: 6px;
-      margin-bottom: 10px;
-      text-align: center;
-      font-size: 0.9em;
-    }
-
-    h2 {
-      text-align: center;
-      color: var(--shield-accent);
-      margin-bottom: 30px;
-    }
-
-    input {
-      width: 100%;
-      padding: 12px 14px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 6px;
-      background-color: #333;
-      color: var(--shield-white);
-      font-size: 1em;
-      box-sizing: border-box;
-      text-align: center;
-    }
-
-    input:focus {
-      outline: 2px solid var(--shield-accent);
-    }
-
-    /* center placeholder text */
-    input::placeholder { text-align: center; color: rgba(255,255,255,0.7); }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 12px;
-      background-color: var(--shield-accent);
-      color: var(--shield-black);
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 1em;
-      font-weight: bold;
-      transition: background-color 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    button:hover {
-      background-color: #e6c95c;
-      box-shadow: 0 0 8px var(--shield-glow);
-    }
-  </style>
-</head>
-<body>
-  <div id="app">
-    <div id="error-message"></div>
-    <h2>Login to NotesVault</h2>
-    <input type="email" id="email" placeholder="Email" />
-    <input type="password" id="password" placeholder="Password" />
-    <button id="loginBtn">Login</button>
-    <button id="registerBtn">Register</button>
-  </div>
-
-  <script type="module">
-    import { auth } from './firebase.js';
-    import {
-      signInWithEmailAndPassword,
-      createUserWithEmailAndPassword
-    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-
-    const email = document.getElementById("email");
-    const password = document.getElementById("password");
-    const errorMessage = document.getElementById("error-message");
-
-    function displayError(message) {
-      errorMessage.textContent = message;
-      errorMessage.style.display = "block";
-      setTimeout(() => {
-        errorMessage.style.display = "none";
-      }, 5000);
-    }
-
-    document.getElementById("loginBtn").onclick = async () => {
-      try {
-        await signInWithEmailAndPassword(auth, email.value, password.value);
-        window.location.href = "index.html";
-      } catch (e) {
-        displayError("Invalid email or password. Please try again.");
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login — NotesVault</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      /* small overrides for login page layout (uses shared theme from style.css) */
+      body {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
-    };
-
-    document.getElementById("registerBtn").onclick = async () => {
-      try {
-        await createUserWithEmailAndPassword(auth, email.value, password.value);
-        window.location.href = "index.html";
-      } catch (e) {
-        displayError("Registration failed. Please use a valid email and password.");
+      #app {
+        max-width: 420px;
+        width: 100%;
+        padding: 32px 30px;
+        border-radius: 12px;
       }
-    };
-  </script>
-</body>
+      #error-message {
+        display: none;
+        color: #ff4d4d;
+        background: #2b0b0b;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      h2 {
+        text-align: center;
+        margin: 0 0 18px 0;
+      }
+
+      input {
+        width: 100%;
+        padding: 12px 14px;
+        margin: 10px 0;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 8px;
+        background-color: #111;
+        color: var(--shield-white);
+        font-size: 1em;
+        box-sizing: border-box;
+        text-align: left;
+        transition: box-shadow 180ms ease, border-color 120ms ease,
+          box-shadow 240ms ease;
+
+        box-shadow: 0 0 10px rgba(202, 169, 76, 0.4);
+      }
+
+      input:hover {
+        box-shadow: 0 0 18px rgba(202, 169, 76, 0.5),
+          0 0 24px rgba(202, 169, 76, 0.2);
+      }
+
+      input:focus {
+        outline: none;
+        border-color: var(--shield-accent);
+        box-shadow: 0 6px 30px var(--shield-glow),
+          0 0 12px rgba(202, 169, 76, 0.25);
+      }
+
+      /* Real glow on focus */
+      input:focus {
+        outline: none;
+        border-color: var(--shield-accent);
+        box-shadow: 0 6px 28px var(--shield-glow),
+          0 0 8px rgba(202, 169, 76, 0.18);
+      }
+
+      #app button {
+        width: 100%;
+      }
+      #app button + button {
+        margin-top: 12px;
+      }
+      label{
+        text-align: left;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <form id="loginForm" autocomplete="on" onsubmit="event.preventDefault();">
+        <div id="error-message"></div>
+        <h2>Login to NotesVault</h2>
+        <input type="email" id="email" name="email" autocomplete="email" placeholder="Email" />
+        <input
+          type="password"
+          id="password"
+          name="password"
+          autocomplete="current-password"
+          placeholder="Password (Min 8 Characters)"
+        />
+        <button type="button" id="loginBtn">Login</button>
+        <button type="button" id="registerBtn">Register</button>
+      </form>
+    </div>
+
+    <script type="module">
+      import { auth } from "./firebase.js";
+      import {
+        signInWithEmailAndPassword,
+        createUserWithEmailAndPassword,
+      } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+
+      const email = document.getElementById("email");
+      const password = document.getElementById("password");
+      const errorMessage = document.getElementById("error-message");
+      const loginBtn = document.getElementById("loginBtn");
+      const registerBtn = document.getElementById("registerBtn");
+
+      function createLoadingOverlay() {
+        if (document.getElementById("loading-screen")) return;
+        const loadingScreen = document.createElement("div");
+        loadingScreen.id = "loading-screen";
+        loadingScreen.className = "loading-screen";
+        const inner = document.createElement("div");
+        inner.className = "loading-inner";
+        const spinner = document.createElement("div");
+        spinner.className = "spinner gold";
+        const text = document.createElement("div");
+        text.className = "loading-text";
+        text.textContent = "Please wait...";
+        inner.appendChild(spinner);
+        inner.appendChild(text);
+        loadingScreen.appendChild(inner);
+        document.body.appendChild(loadingScreen);
+      }
+
+      function showLoading() {
+        createLoadingOverlay();
+        const el = document.getElementById("loading-screen");
+        if (el) el.classList.remove("hidden");
+      }
+      function hideLoading() {
+        const el = document.getElementById("loading-screen");
+        if (el) el.classList.add("hidden");
+      }
+
+      function displayError(message) {
+        errorMessage.textContent = message;
+        errorMessage.style.display = "block";
+        hideLoading();
+        loginBtn.disabled = false;
+        registerBtn.disabled = false;
+        loginBtn.textContent = "Login";
+        registerBtn.textContent = "Register";
+        setTimeout(() => {
+          errorMessage.style.display = "none";
+        }, 5000);
+      }
+
+      // Allow Enter to submit (either input)
+      [email, password].forEach((el) => {
+        el.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            loginBtn.click();
+          }
+        });
+      });
+
+      loginBtn.addEventListener("click", async () => {
+        // hint browser this is a sign-in flow
+        password.setAttribute('autocomplete', 'current-password');
+        loginBtn.disabled = true;
+        registerBtn.disabled = true;
+        loginBtn.textContent = "Logging in...";
+        showLoading();
+        try {
+          await signInWithEmailAndPassword(auth, email.value, password.value);
+          // On success, redirect—keep loading visible briefly
+          setTimeout(() => (window.location.href = "index.html"), 250);
+        } catch (e) {
+          displayError("Invalid email or password. Please try again.");
+        }
+      });
+
+      registerBtn.addEventListener("click", async () => {
+        // hint browser this is a sign-up flow (so it may offer to save the new password)
+        password.setAttribute('autocomplete', 'new-password');
+        loginBtn.disabled = true;
+        registerBtn.disabled = true;
+        registerBtn.textContent = "Registering...";
+        showLoading();
+        try {
+          await createUserWithEmailAndPassword(
+            auth,
+            email.value,
+            password.value
+          );
+          setTimeout(() => (window.location.href = "index.html"), 250);
+        } catch (e) {
+          displayError(
+            "Registration failed. Please use a valid email and password."
+          );
+        }
+      });
+    </script>
+  </body>
 </html>

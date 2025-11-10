@@ -40,6 +40,62 @@
 #confirm-delete-modal button:hover {
   background: #e6c76a;
 }
+/* ────────── CONFIRM LOGOUT MODAL (system-style) ────────── */
+#confirm-logout-modal {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(18,18,18,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 12000;
+}
+
+#confirm-logout-modal .modal-content {
+  background: linear-gradient(180deg, #1f1f1f, #151515);
+  color: var(--shield-white);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.65), 0 0 30px rgba(202,169,76,0.06);
+  padding: 22px 28px;
+  text-align: left;
+  min-width: 320px;
+  max-width: 92vw;
+  border: 1px solid rgba(202,169,76,0.06);
+}
+
+#confirm-logout-modal .modal-content h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.05rem;
+  color: var(--shield-accent);
+}
+
+#confirm-logout-modal .modal-content p {
+  margin: 0 0 16px 0;
+  color: rgba(250,250,250,0.9);
+  font-size: 0.95rem;
+}
+
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+#confirm-logout-modal button { padding: 8px 14px; font-size: 0.95rem; }
+
+/* destructive primary button (sign out) */
+.destructive {
+  background: linear-gradient(180deg, #ff6050, #e64539);
+  color: white;
+  border: none;
+  box-shadow: 0 6px 20px rgba(230,69,57,0.18);
+}
+
+.secondary {
+  background: transparent;
+  border: 1px solid rgba(250,250,250,0.06);
+  color: var(--shield-accent);
+}
+
+#confirm-logout-modal:not(.hidden) { display: flex; }
 /* ──────────── ROOT SHIELD THEME ──────────── */
 :root {
   --shield-black: #1a1a1a;
@@ -74,7 +130,10 @@ body {
 #app {
   max-width: 800px;
   margin: 0 auto;
+  /* reserve space so a fixed footer won't overlap content */
+  padding-bottom: 64px;
 }
+
 /* ────────── SAVE STATUS ────────── */
 #save-status {
   min-height: 28px;
@@ -83,17 +142,12 @@ body {
   letter-spacing: 0.5px;
 }
 
-/* Utility helper to hide elements */
 .hidden { display: none !important; }
 
-/* Save status specific layout */
 .save-status { margin: 16px 0; text-align: left; }
 
-/* Alert box - small unobtrusive notifications */
-/* Alert box - small unobtrusive notifications */
 .alert-box,
 #alert-box {
-  /* Use transitions for snappy show/hide without display toggles */
   padding: 8px 12px;
   border-radius: 6px;
   background: rgba(202,169,76,0.08);
@@ -111,7 +165,6 @@ body {
   pointer-events: none; /* don't block clicks when hidden */
 }
 
-/* Visible state */
 .alert-box.visible,
 #alert-box.visible {
   opacity: 1;
@@ -121,12 +174,9 @@ body {
   margin-top: 8px;
 }
 
-/* Variants */
 .alert-box.success { background: rgba(202,169,76,0.08); color: var(--shield-accent); border-color: rgba(202,169,76,0.18); }
 .alert-box.error { background: rgba(255,77,77,0.06); color: #ff4d4d; border-color: rgba(255,77,77,0.18); }
 
-/* Shortcut hint */
-/* Shortcut hint */
 #shortcut-hint, .shortcut-hint {
   max-width: 800px;
   margin: 0.5rem auto 0 auto;
@@ -193,9 +243,7 @@ button:hover {
   background: var(--shield-grey);
   border: 1px solid var(--shield-accent);
   border-radius: var(--shield-radius);
-  padding: 1rem 1.2rem 1rem 1.2rem;
-  margin-bottom: 1.2rem;
-  width: 100%;
+  padding: 1rem 1.2rem;
   color: var(--shield-white);
   box-shadow: 0 0 10px var(--shield-glow);
   opacity: 0;
@@ -239,7 +287,6 @@ img {
   filter: drop-shadow(0 0 8px var(--shield-accent));
 }
 
-/* Responsive layout for mobile */
 @media (max-width: 600px) {
   #app {
     max-width: 98vw;
@@ -259,6 +306,18 @@ img {
     box-sizing: border-box;
   }
 }
+
+/* ──────────── NOTES GRID (dashboard-like) ──────────── */
+#notes-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+#notes-list .note { margin: 0; }
+
+#notes-list-container { padding: 0.5rem; }
 
 /* Notes list container */
 #notes-list-container {
@@ -284,12 +343,19 @@ img {
 
 /* Footer */
 .site-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
   text-align: center;
-  margin-top: 40px;
+  margin-top: 0; 
   color: var(--shield-grey);
+  padding: 12px 0;
+  background: transparent; 
+  z-index: 60;
 }
 
-/* Modal helpers used by JS-inserted markup */
 .modal-content h3 {
   color: var(--shield-accent);
   margin-bottom: 18px;
@@ -324,7 +390,6 @@ img {
   color: var(--shield-accent);
 }
 
-/* Spinner base */
 .spinner {
   width: 36px;
   height: 36px;
@@ -335,14 +400,12 @@ img {
   animation: spin 900ms linear infinite;
 }
 
-/* Gold spinner for loading */
 .spinner.gold {
   border: 4px solid rgba(202,169,76,0.12);
   border-top-color: var(--shield-accent);
   box-shadow: 0 0 12px rgba(202,169,76,0.12);
 }
 
-/* Red spinner for logout */
 .spinner.red {
   border: 4px solid rgba(255,77,77,0.12);
   border-top-color: #ff4d4d;
@@ -390,21 +453,18 @@ img {
 }
 
 
-/* Loading text (used when dynamically created in JS) */
 .loading-text {
   font-size: 1.4em;
   font-weight: bold;
   color: var(--shield-accent);
 }
 
-/* Save status inline states */
 .saving, .saved {
   color: var(--shield-accent);
   font-weight: bold;
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* Ensure modal container shows as flex when not hidden */
 #confirm-delete-modal:not(.hidden) { display: flex; }
 
 /* ────────── ERROR MESSAGE ────────── */
@@ -414,9 +474,9 @@ img {
   background-color: #ffe6e6;
   padding: 10px;
   border-radius: 6px;
-  margin-top: 10px; /* Changed from margin-bottom to margin-top */
+  margin-top: 10px;
   text-align: center;
   font-size: 0.9em;
-  width: 100%; /* Ensure it spans the form width */
-  box-sizing: border-box; /* Prevent overflow */
+  width: 100%; 
+  box-sizing: border-box; 
 }
